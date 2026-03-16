@@ -9,7 +9,7 @@ public class GameState {
     private int pot = 0;
     private int currentPlayerIndex = 0;
     private int highestBet = 0;
-    private String phase = "WAITING"; // WAITING, PRE_FLOP, FLOP, TURN, RIVER, SHOWDOWN
+    private String phase = "WAITING";
     private String message = "Waiting for players...";
 
     public List<Player> getPlayers() { return players; }
@@ -21,7 +21,7 @@ public class GameState {
     public String getMessage() { return message; }
 
     public void setPot(int pot) { this.pot = pot; }
-    public void setCurrentPlayerIndex(int index) { this.currentPlayerIndex = index; }
+    public void setCurrentPlayerIndex(int currentPlayerIndex) { this.currentPlayerIndex = currentPlayerIndex; }
     public void setHighestBet(int highestBet) { this.highestBet = highestBet; }
     public void setPhase(String phase) { this.phase = phase; }
     public void setMessage(String message) { this.message = message; }

@@ -9,6 +9,7 @@ public class Player {
     private int chips = 1000;
     private int currentBet = 0;
     private boolean folded = false;
+    private boolean allIn = false;
     private List<Card> hand = new ArrayList<>();
 
     public Player() {}
@@ -23,25 +24,30 @@ public class Player {
     public int getChips() { return chips; }
     public int getCurrentBet() { return currentBet; }
     public boolean isFolded() { return folded; }
+    public boolean isAllIn() { return allIn; }
     public List<Card> getHand() { return hand; }
 
     public void setCurrentBet(int currentBet) { this.currentBet = currentBet; }
     public void setFolded(boolean folded) { this.folded = folded; }
+    public void setAllIn(boolean allIn) { this.allIn = allIn; }
 
     public void addCard(Card card) {
         hand.add(card);
     }
 
-    public void clearHand() {
+    public void clearForNewRound() {
         hand.clear();
-        folded = false;
         currentBet = 0;
+        folded = false;
+        allIn = false;
     }
 
-    public void bet(int amount) {
-        amount = Math.min(amount, chips);
-        chips -= amount;
-        currentBet += amount;
+    public int bet(int amount) {
+        int actual = Math.min(amount, chips);
+        chips -= actual;
+        currentBet += actual;
+        if (chips == 0) allIn = true;
+        return actual;
     }
 
     public void win(int amount) {

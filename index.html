@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Multiplayer Poker</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>🃏 Multiplayer Poker</h1>
+
+    <div class="join-box">
+      <input type="text" id="nameInput" placeholder="Enter your name" />
+      <button onclick="joinGame()">Join Game</button>
+      <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <div class="status">
+      <p><strong>Phase:</strong> <span id="phase">WAITING</span></p>
+      <p><strong>Pot:</strong> $<span id="pot">0</span></p>
+      <p><strong>Message:</strong> <span id="message">Waiting...</span></p>
+    </div>
+
+    <div class="community">
+      <h2>Community Cards</h2>
+      <div id="communityCards" class="cards"></div>
+    </div>
+
+    <div class="players">
+      <h2>Players</h2>
+      <div id="players"></div>
+    </div>
+
+    <div class="actions">
+      <button onclick="sendAction('CHECK')">Check</button>
+      <button onclick="sendAction('CALL')">Call</button>
+      <input type="number" id="raiseAmount" placeholder="Raise amount" />
+      <button onclick="raiseBet()">Raise</button>
+      <button onclick="sendAction('FOLD')">Fold</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

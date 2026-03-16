@@ -1,13 +1,15 @@
 package com.example.poker.controller;
 
-import com.example.poker.model.GameState;
+import com.example.poker.model.PlayerState;
 import com.example.poker.service.PokerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.*;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -24,26 +26,34 @@ public class PokerWebSocketController {
                      @Header("simpSessionId") String sessionId) {
         String name = payload.getOrDefault("name", "Player");
         pokerService.addPlayer(sessionId, name);
-        broadcast();
+        broadcastToAllPlayers();
     }
 
     @MessageMapping("/start")
     public void start() {
         pokerService.startGame();
-        broadcast();
+        broadcastToAllPlayers();
     }
 
     @MessageMapping("/action")
     public void action(@Payload Map<String, Object> payload,
                        @Header("simpSessionId") String sessionId) {
         String action = (String) payload.get("action");
-        int amount = payload.get("amount") == null ? 0 : (int) payload.get("amount");
+        int amount = 0;
+        if (payload.get("amount") instanceof Integer) {
+            amount = (Integer) payload.get("amount");
+        } else if (payload.get("amount") instanceof Number) {
+            amount = ((Number) payload.get("amount")).intValue();
+        }
+
         pokerService.playerAction(sessionId, action, amount);
-        broadcast();
+        broadcastToAllPlayers();
     }
 
-    private void broadcast() {
-        GameState state = pokerService.getGameState();
-        messagingTemplate.convertAndSend("/topic/game", state);
+    private void broadcastToAllPlayers() {
+        List<PlayerState> states = pokerService.buildPlayerStates();
+        for (PlayerState state : states) {
+            messagingTemplate.convertAndSendToUser(state.getYourId(), "/queue/state", state);
+        }
     }
 }

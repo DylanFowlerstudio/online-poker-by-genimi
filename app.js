@@ -1,71 +1,96 @@
 let stompClient = null;
+let connected = false;
 
-function connect() {
+function connectIfNeeded(callback) {
+  if (connected && stompClient) {
+    callback();
+    return;
+  }
+
   const socket = new SockJS('/poker');
   stompClient = Stomp.over(socket);
 
   stompClient.connect({}, function () {
-    stompClient.subscribe('/topic/game', function (message) {
+    connected = true;
+
+    stompClient.subscribe('/user/queue/state', function (message) {
       const state = JSON.parse(message.body);
-      renderGame(state);
+      renderState(state);
     });
+
+    callback();
   });
 }
 
 function joinGame() {
-  const name = document.getElementById('nameInput').value || 'Player';
-  if (!stompClient) connect();
+  const name = document.getElementById('nameInput').value.trim() || 'Player';
 
-  setTimeout(() => {
+  connectIfNeeded(() => {
     stompClient.send('/app/join', {}, JSON.stringify({ name }));
-  }, 500);
+  });
 }
 
 function startGame() {
-  if (stompClient) {
-    stompClient.send('/app/start', {}, {});
-  }
+  if (!connected || !stompClient) return;
+  stompClient.send('/app/start', {}, JSON.stringify({}));
 }
 
 function sendAction(action) {
-  if (stompClient) {
-    stompClient.send('/app/action', {}, JSON.stringify({ action, amount: 0 }));
-  }
+  if (!connected || !stompClient) return;
+  stompClient.send('/app/action', {}, JSON.stringify({ action, amount: 0 }));
 }
 
-function raiseBet() {
+function raiseAction() {
+  if (!connected || !stompClient) return;
+
   const amount = parseInt(document.getElementById('raiseAmount').value) || 0;
-  if (stompClient) {
-    stompClient.send('/app/action', {}, JSON.stringify({ action: 'RAISE', amount }));
-  }
+  stompClient.send('/app/action', {}, JSON.stringify({ action: 'RAISE', amount }));
 }
 
-function renderGame(state) {
+function renderState(state) {
   document.getElementById('phase').innerText = state.phase;
   document.getElementById('pot').innerText = state.pot;
-  document.getElementById('message').innerText = state.message;
+  document.getElementById('highestBet').innerText = state.highestBet;
+  document.getElementById('message').innerText = state.message + (state.yourTurn ? ' | YOUR TURN' : '');
 
-  const community = document.getElementById('communityCards');
-  community.innerHTML = '';
+  const communityCards = document.getElementById('communityCards');
+  communityCards.innerHTML = '';
   state.communityCards.forEach(card => {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerText = `${card.rank}\n${card.suit}`;
-    community.appendChild(div);
+    communityCards.appendChild(createCard(card));
   });
 
-  const players = document.getElementById('players');
-  players.innerHTML = '';
-  state.players.forEach((p, index) => {
-    const div = document.createElement('div');
-    div.className = 'player';
-    div.innerHTML = `
-      <strong>${p.name}</strong> ${index === state.currentPlayerIndex ? '⬅️ TURN' : ''}
-      <br>Chips: $${p.chips}
-      <br>Bet: $${p.currentBet}
-      <br>Status: ${p.folded ? 'Folded' : 'Active'}
-      <br>Hand: ${p.hand.map(c => c.rank + ' of ' + c.suit).join(', ')}
-    `;
-    players.appendChild(div);
+  const yourHand = document.getElementById('yourHand');
+  yourHand.innerHTML = '';
+  state.yourHand.forEach(card => {
+    yourHand.appendChild(createCard(card));
   });
+
+  const playersList = document.getElementById('playersList');
+  playersList.innerHTML = '';
+
+  state.players.forEach(player => {
+    const div = document.createElement('div');
+    div.className = 'player-card';
+
+    if (player.id === state.currentTurnPlayerId) {
+      div.classList.add('player-turn');
+    }
+
+    div.innerHTML = `
+      <strong>${player.name}</strong><br>
+      Chips: $${player.chips}<br>
+      Current Bet: $${player.currentBet}<br>
+      Status: ${player.folded ? 'Folded' : player.allIn ? 'All-In' : 'Active'}
+      ${player.id === state.yourId ? '<br><span class="muted">(You)</span>' : ''}
+    `;
+
+    playersList.appendChild(div);
+  });
+}
+
+function createCard(card) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.innerText = `${card.rank}\n${card.suit}`;
+  return div;
 }

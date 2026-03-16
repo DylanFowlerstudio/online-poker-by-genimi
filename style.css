@@ -1,0 +1,46 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b3d2e;
+  color: white;
+  text-align: center;
+}
+
+.container {
+  padding: 20px;
+}
+
+.cards {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: white;
+  color: black;
+  border-radius: 8px;
+  padding: 12px;
+  width: 70px;
+  font-weight: bold;
+}
+
+.player {
+  background: rgba(255,255,255,0.1);
+  margin: 10px auto;
+  padding: 10px;
+  border-radius: 8px;
+  width: 300px;
+}
+
+.actions {
+  margin-top: 20px;
+}
+
+button, input {
+  margin: 5px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+}
